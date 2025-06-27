@@ -116,7 +116,7 @@ async def websocket_endpoint(
 
     websocket_manager = WebsocketManager( guid, modelInstance , dispatcher, websocket , source )
     speech_to_text = SpeechToTextDeepgram( guid , dispatcher ,  websocket , DEEPGRAM_API_KEY )
-    large_language_model = LargeLanguageModel( guid , lat , long  , modelInstance , dispatcher )
+    large_language_model = LargeLanguageModel( guid , lat , long  , modelInstance , dispatcher, source.value )
     text_to_speeech = TextToSpeechDeepgram( guid  , dispatcher , DEEPGRAM_API_KEY )
 
     try:
