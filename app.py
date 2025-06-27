@@ -1,4 +1,9 @@
 # external imports
+import utils.net
+import utils.clients
+import utils.http_session
+import utils.transport
+import utils.session
 import os , uuid , asyncio
 from dotenv import load_dotenv
 from api_request_schemas import (SourceEnum , LanguageEnum)
@@ -116,7 +121,7 @@ async def websocket_endpoint(
 
     websocket_manager = WebsocketManager( guid, modelInstance , dispatcher, websocket , source )
     speech_to_text = SpeechToTextDeepgram( guid , dispatcher ,  websocket , DEEPGRAM_API_KEY )
-    large_language_model = LargeLanguageModel( guid , lat , long  , modelInstance , dispatcher )
+    large_language_model = LargeLanguageModel( guid , lat , long  , modelInstance , dispatcher, source.value )
     text_to_speeech = TextToSpeechDeepgram( guid  , dispatcher , DEEPGRAM_API_KEY )
 
     try:
