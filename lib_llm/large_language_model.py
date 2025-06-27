@@ -135,13 +135,14 @@ tool_implementations = {
 }
 
 class LargeLanguageModel:
-    def __init__(self, guid , lat : float , long : float, llm: LLM, dispatcher: Dispatcher):
+    def __init__(self, guid , lat : float , long : float, llm: LLM, dispatcher: Dispatcher,source: str = "device"):
         self.guid = guid
         self.llm = llm
         self.dispatcher = dispatcher
         llm.tools = tools
         self.lat = lat
         self.long = long
+        self.source = source
         self.is_audio_required = True
 
 
@@ -171,6 +172,7 @@ class LargeLanguageModel:
                     # Add lat and long to the function arguments if they are not already present
                     func_args['lat'] = self.lat
                     func_args['long'] = self.long
+                    func_args['source'] = self.source
                     result = func(func_args)
                     if result.get('is_llm_needed') : 
                         await self.dispatcher.broadcast(
