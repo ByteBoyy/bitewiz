@@ -69,11 +69,18 @@ async function start(socket) {
   });
 }
 
+function stopAudio() {
+  // Clear the audio queue and stop current playback
+  audioQueue = [];
+  isPlaying = false;
+  console.log("Audio stopped and queue cleared");
+}
+
 function playNextAudio() {
   if (audioQueue.length > 0 && !isPlaying) {
     isPlaying = true;
-    // audioQueue[0]
     const data = audioQueue.shift();
+    console.log(`Playing audio chunk, ${audioQueue.length} remaining in queue`);
     playAudio(data);
   }
 }
@@ -111,8 +118,9 @@ function playAudio(data) {
   source.buffer = audioBuffer;
   source.connect(audioContext.destination);
   source.onended = () => {
+    console.log("Audio chunk finished playing");
     isPlaying = false;
-    playNextAudio();
+    playNextAudio(); // Try to play next chunk
   };
   source.start(0);
 }
@@ -126,7 +134,6 @@ function getWebSocketURL(path = "") {
 }
 
 function addUserMessage(message) {
-  
   userMsgDiv.innerHTML = message;
 }
 
@@ -152,14 +159,10 @@ function sendMessage(){
   }
 }
 
-
-
 window.addEventListener("load", () => {
   // URL for WebSocket connection via Phone / Web / Audio Stream
   const websocketUrl = getWebSocketURL(`/ws/phone?language=${language}&lat=${26.28745}&long=${-80.2033278}`);
   console.log({ websocketUrl });
-
-
 
   socket = new WebSocket(websocketUrl);
   // Handle WebSocket events
@@ -171,11 +174,14 @@ window.addEventListener("load", () => {
 
   socket.onmessage = (event) => {
     let event_parsed = JSON.parse(event.data);
-    console.log(`Data-Rcvd : ${socket}`);
+    console.log(`Data-Rcvd : ${JSON.stringify(event_parsed)}`);
+    
     if (event_parsed.is_text == true){
       console.log("---> Text" , {event_parsed})
       let msg = event_parsed.msg
-      if(event_parsed.is_transcription == true){ addUserMessage(msg) }
+      if(event_parsed.is_transcription == true){ 
+        addUserMessage(msg) 
+      }
       else{
         if(event_parsed.is_end){
           refreshMsgText = true;
@@ -184,21 +190,31 @@ window.addEventListener("load", () => {
       }
     }
     else{
-      console.log("[AUDIO_RECIEVED]")
+      console.log("[AUDIO_RECIEVED]", event_parsed)
       if(event_parsed.is_clear_event == true){
-        console.log("[CLEAR_BUFFER_EVENT_RECIEVED]")
+        console.log("[CLEAR_BUFFER_EVENT_RECIEVED] - Clearing audio queue")
         audioQueue = [];
+        isPlaying = false; // Reset playing state
       }
       else{
         let audio_data = event_parsed.audio;
-        audioQueue.push(audio_data);
-        playNextAudio();      
+        if(audio_data) {
+          console.log(`[AUDIO_QUEUED] Adding audio to queue, current queue length: ${audioQueue.length}`);
+          audioQueue.push(audio_data);
+          // Always try to play next audio when new audio is received
+          playNextAudio();      
+        } else {
+          console.log("[AUDIO_ERROR] No audio data in message");
+        }
       }
-
     }
   };
 
   socket.onclose = () => {
     console.log('WebSocket connection closed');
+  };
+
+  socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
   };
 });
