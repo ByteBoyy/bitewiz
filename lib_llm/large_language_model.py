@@ -153,14 +153,26 @@ class LargeLanguageModel:
 
     async def process(self, message: LLM.LLMMessage):
         if message.role == LLM.Role.USER:
-            is_relevant = self.relevance_filter.is_relevant_with_context(
+            is_relevant , is_dormant = self.relevance_filter.is_relevant_with_context(
                 message.content, 
                 self.recent_messages,
                 threshold=0.55
             )
-            
+            if is_dormant : 
+                print(f"SENDING DORMANT FLAG")
+                await self.dispatcher.broadcast(
+                self.guid,
+                Message(
+                    MessageHeader(
+                        MessageType.IS_DORMANT
+                    ),
+                    data={"is_dormant" : is_dormant},
+                ),
+                )
+                        
             if not is_relevant:
                 print(f"🔇 Filtering out: '{message.content}'")
+
                 return
             
             self.recent_messages.append(message.content)

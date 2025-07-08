@@ -34,7 +34,7 @@ class RelevanceFilter:
         }
         
         # Wake words for activation
-        self.wake_words = ['bitewise', 'bite wise', 'hey bitewise', 'hi bitewise', 'hello bitewise','bitey', 'bite', 'hey bite', 'hey bitey', 'hi bite','hi bitey', 'hello bite','hello bitey']
+        self.wake_words = ['bitewise', 'bite wise', 'hey bitewise', 'hi bitewise', 'hello bitewise','bitey', 'bite', 'hey bite', 'hey bitey', 'hi bite','hi bitey', 'hello bite','hello bitey','hi bitewiz', 'hello bitewiz','hello bite wiz', 'hi bite wiz','click_event','bitewiz','bite wiz']
         
         # Strong activation phrases
         self.activation_phrases = {
@@ -275,30 +275,33 @@ class RelevanceFilter:
     def should_process_speech(self, text: str, recent_messages: List[str] = None) -> bool:
         """Main decision function - determines if speech should be processed"""
         current_time = time.time()
-        
+        dormant = False
         # Check for gibberish/noise first
         cleaned_text = self.clean_text(text)
         if not cleaned_text:
-            return False
+            return False , dormant
             
         for pattern in self.ignore_patterns:
             if re.match(pattern, cleaned_text):
                 print(f"[FILTERED] Ignoring noise: '{text}'")
-                return False
+                return False , dormant
         
         # Always process wake words
         if self.contains_wake_word(text):
             self.conversation_active = True
             self.last_relevant_speech_time = current_time
             print(f"[WAKE WORD] Activating conversation: '{text}'")
-            return True
+            return True , dormant
         
         # Check conversation timeout
         if current_time - self.last_relevant_speech_time > self.conversation_timeout:
             self.conversation_active = False
+            dormant = True
             print(f"[TIMEOUT] Conversation timed out, going dormant")
-            return False
+
+            return False , dormant
         
+
         # Calculate relevance
         score = self.calculate_relevance_score(text, recent_messages)
         threshold = 0.3 if self.conversation_active else 0.35
@@ -309,10 +312,10 @@ class RelevanceFilter:
         
         if is_relevant:
             self.last_relevant_speech_time = current_time
-            return True
+            return True , dormant
         else:
             print(f"[FILTERED] Ignoring irrelevant speech: '{text}'")
-            return False
+            return False , dormant
 
     def clean_wake_word_from_text(self, text: str) -> str:
         """Remove wake words from text before sending to LLM"""

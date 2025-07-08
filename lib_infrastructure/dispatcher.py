@@ -26,6 +26,7 @@ class MessageType(enum.Enum):
     CURRENT_STREAMING_MSG = 18
     TTS_FLUSH = 19
     STRUCTURED_DATA = 20
+    IS_DORMANT = 21
 
 
 class MessageHeader:
