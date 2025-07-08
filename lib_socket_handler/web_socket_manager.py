@@ -206,6 +206,16 @@ class WebsocketManager(Disposable):
                 await self.send( llm_msg_data )
 
 
+    async def websocket_put_dormant_event(self):
+        async with await self.dispatcher.subscribe(
+            self.guid, MessageType.IS_DORMANT
+        ) as subscriber:
+            async for event in subscriber:
+                stream_data = event.message.data
+                llm_msg = stream_data
+                llm_msg_data = { "is_text" : True , "is_clear_event" : False , "is_transcription" : False , "is_end" : True,  "is_dormant" : True ,  "msg" : None }
+                await self.send( llm_msg_data )
+
 
 
     async def run_async(self):
@@ -224,6 +234,8 @@ class WebsocketManager(Disposable):
             asyncio.create_task(self.websocket_put_llm_responce()),
             # check for sending events for LLM structured data being captured
             asyncio.create_task(self.websocket_put_llm_structured_data()),
+            # check for sending dormant event in LLM 
+            asyncio.create_task(self.websocket_put_dormant_event()),
             # check web socket clear buffer event
             asyncio.create_task(self.websocket_put_clear_event()),
             # check for close connection events

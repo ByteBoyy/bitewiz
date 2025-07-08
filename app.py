@@ -19,9 +19,10 @@ from lib_infrastructure.helpers.global_event_logger import GlobalLoggerAsync
 # loading .env configs
 load_dotenv()
 PORT = int(os.getenv("PORT"))
-DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OUTPUT_MP3_FILES = "output.mp3"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+
 
 
 # app initalization & setup
