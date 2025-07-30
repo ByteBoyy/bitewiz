@@ -25,6 +25,9 @@ class SpeechToTextDeepgram :
             utterance_end_ms=1000,
             vad_events=True,
 
+            encoding="linear16",
+            sample_rate=16000,
+
         )    
 
 
@@ -34,6 +37,7 @@ class SpeechToTextDeepgram :
             if text is None:
                 return
             sentence = json.loads(text)
+            print(f"SENTENCE : {sentence} , {type(sentence)}")
             sentence = sentence.get("transcibed_text" , None)
             if sentence is not None:
                 await self.dispatcher.broadcast(
@@ -54,7 +58,9 @@ class SpeechToTextDeepgram :
         try:
             audio = encoded_audio
             self.dg_connection.send(audio)
-        except Exception as e: pass
+        except Exception as e: 
+            print(f"ERROR_IN_TRANSCRIPTION: {e}")
+            pass
 
 
     async def run_async(self) : 
@@ -108,8 +114,10 @@ class SpeechToTextDeepgram :
                 async for event in websocket_get:
                     audio_chunk = event.message.data
                     if isinstance(audio_chunk, bytes):
+                        print(f"[BYTES_RECIEVED]")
                         self.transcribe(audio_chunk)
                     elif isinstance(audio_chunk, str):
+                        print(f"[TEXT_RECIVED]")
                         await self.handle_transcibed_text(audio_chunk)
 
 

@@ -121,26 +121,68 @@ class WebsocketManager(Disposable):
             await asyncio.sleep(1)
 
 
-    async def websocket_get(self):
-        try : 
-            if self.source == SourceEnum.device :
-                reeciever = self.ws.iter_text
-            elif self.source == SourceEnum.phone :
-                reeciever = self.ws.iter_bytes
-            else :
-                raise RuntimeError("Invalid source type")
+    # async def websocket_get(self):
+    #     try : 
+    #         if self.source == SourceEnum.device :
+    #             reeciever = self.ws.iter_text
+    #         elif self.source == SourceEnum.phone :
+    #             reeciever = self.ws.iter_bytes
+    #         else :
+    #             raise RuntimeError("Invalid source type")
             
-            async for message in reeciever():
-                await self.dispatcher.broadcast(
-                    self.guid,
-                    Message(
-                        MessageHeader(MessageType.CALL_WEBSOCKET_GET), message
-                    ),
-                )
+    #         async for message in reeciever():
+    #             await self.dispatcher.broadcast(
+    #                 self.guid,
+    #                 Message(
+    #                     MessageHeader(MessageType.CALL_WEBSOCKET_GET), message
+    #                 ),
+    #             )
 
 
-        except RuntimeError : 
-            pass
+    #     except RuntimeError : 
+    #         pass
+
+    async def websocket_get(self):
+        """
+            Generic Funciton to deal with both text and bytes messages from the websocket.
+        """
+        try:
+            while True:
+                try:
+
+                    message_data = await self.ws.receive()
+                    
+                    # Handle different message types
+                    if message_data['type'] == 'websocket.receive':
+                        if 'text' in message_data:
+                            message = message_data['text']
+                            message_type = 'text'
+                            print(f"Received text: {len(message)} characters")
+                        elif 'bytes' in message_data:
+                            message = message_data['bytes']
+                            message_type = 'bytes'
+                            print(f"Received bytes: {len(message)} bytes")
+                        else:
+                            continue
+
+                        await self.dispatcher.broadcast(
+                            self.guid,
+                            Message(
+                                MessageHeader(MessageType.CALL_WEBSOCKET_GET), 
+                                message
+                            ),
+                        )
+                        
+                    elif message_data['type'] == 'websocket.disconnect':
+                        print("WebSocket disconnected")
+                        break
+                        
+                except Exception as e:
+                    print(f"Error in websocket_get: {e}")
+                    break
+                    
+        except Exception as e:
+            print(f"WebSocket handler error: {e}")
 
 
     async def websocket_put(self):
