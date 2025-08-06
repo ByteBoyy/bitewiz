@@ -9,3 +9,6 @@ conversations.json
 test.py/
 /test.py
 /test.py/
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore

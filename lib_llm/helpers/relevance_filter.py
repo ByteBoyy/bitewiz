@@ -269,6 +269,9 @@ class RelevanceFilter:
         # Strong penalty for background conversation
         if context['is_complaint']:
             score -= 0.8
+
+        if self.conversation_active and context['has_food_context']:
+            score += 0.3
             
         return max(0.0, min(1.0, score))
 
