@@ -1,5 +1,6 @@
 let chat_socket;
 let language = "english";
+let encoding = "adaptive"; // Change this to "linear" for linear16 encoding, or "adaptive" to remove encoding params
 let audioQueue = [];
 let isPlaying = false;
 let refreshMsgText = false;
@@ -161,7 +162,7 @@ function sendMessage(){
 
 window.addEventListener("load", () => {
   // URL for WebSocket connection via Phone / Web / Audio Stream
-  const websocketUrl = getWebSocketURL(`/ws/phone?language=${language}&lat=${26.28745}&long=${-80.2033278}`);
+  const websocketUrl = getWebSocketURL(`/ws/phone?language=${language}&lat=${26.28745}&long=${-80.2033278}&encoding=${encoding}`);
   console.log({ websocketUrl });
 
   socket = new WebSocket(websocketUrl);
