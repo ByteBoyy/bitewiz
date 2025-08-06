@@ -84,11 +84,16 @@ async def websocket_endpoint(
     source: SourceEnum,
     lat: float | None = None,
     long: float | None = None,
-    language: LanguageEnum | None = None 
+    language: LanguageEnum | None = None,
+    encoding: str | None = None  # New encoding parameter
 ):
     guid = str(uuid.uuid4())
 
-    print(f"WebSocket connection established via => {source.value} with UID => {guid} & language => {language.value} @ location : {lat}, {long}")
+    # Default encoding to "linear" if not provided
+    if encoding is None:
+        encoding = "linear"
+
+    print(f"WebSocket connection established via => {source.value} with UID => {guid} & language => {language.value} @ location : {lat}, {long} with encoding => {encoding}")
 
     prompt_generator = PromptGenerator(language)
     modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
@@ -116,7 +121,7 @@ async def websocket_endpoint(
 
 
     websocket_manager = WebsocketManager( guid, modelInstance , dispatcher, websocket , source )
-    speech_to_text = SpeechToTextDeepgram( guid , dispatcher ,  websocket , DEEPGRAM_API_KEY )
+    speech_to_text = SpeechToTextDeepgram( guid , dispatcher ,  websocket , DEEPGRAM_API_KEY, encoding )  # Pass encoding
     large_language_model = LargeLanguageModel( guid , lat , long  , modelInstance , dispatcher, source.value )
     text_to_speeech = TextToSpeechDeepgram( guid  , dispatcher , DEEPGRAM_API_KEY )
 
