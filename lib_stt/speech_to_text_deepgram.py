@@ -7,28 +7,41 @@ from lib_infrastructure.dispatcher import ( Dispatcher, Message, MessageHeader, 
 
 
 class SpeechToTextDeepgram : 
-    def __init__(self  , guid , dispatcher: Dispatcher , socket_conext , api_key ) -> None:
+    def __init__(self  , guid , dispatcher: Dispatcher , socket_conext , api_key, encoding: str = "linear" ) -> None:
         self.guid = guid
         self.dispatcher = dispatcher
         self.api_key = api_key
         self.socket_context = socket_conext
+        self.encoding = encoding
         self.deepgram_config = DeepgramClientOptions( options={"keepalive": "true"} )
         self.deepgram = DeepgramClient(api_key= self.api_key , config=self.deepgram_config )
         self.dg_connection = self.deepgram.listen.live.v("1")
-        self.deepgram_options = LiveOptions(
-            smart_format = True,
-            model = "nova-2-drivethru",
-            punctuate=True,
-            language="en-US",
-            channels=1,
-            interim_results=True,
-            utterance_end_ms=1000,
-            vad_events=True,
-
-            encoding="linear16",
-            sample_rate=16000,
-
-        )    
+        
+        # Configure Deepgram options based on encoding parameter
+        self.deepgram_options = self._configure_deepgram_options()
+    
+    def _configure_deepgram_options(self):
+        """Configure Deepgram options based on encoding parameter"""
+        base_options = {
+            "smart_format": True,
+            "model": "nova-2-drivethru",
+            "punctuate": True,
+            "language": "en-US",
+            "channels": 1,
+            "interim_results": True,
+            "utterance_end_ms": 1000,
+            "vad_events": True,
+        }
+        
+        # Only add encoding and sample_rate for linear encoding
+        if self.encoding == "linear":
+            base_options.update({
+                "encoding": "linear16",
+                "sample_rate": 16000,
+            })
+        
+        print(f"Deepgram options configured for encoding '{self.encoding}': {base_options}")
+        return LiveOptions(**base_options)
 
 
 
@@ -114,10 +127,10 @@ class SpeechToTextDeepgram :
                 async for event in websocket_get:
                     audio_chunk = event.message.data
                     if isinstance(audio_chunk, bytes):
-                        print(f"[BYTES_RECIEVED]")
+                        # print(f"[BYTES_RECIEVED]")
                         self.transcribe(audio_chunk)
                     elif isinstance(audio_chunk, str):
-                        print(f"[TEXT_RECIVED]")
+                        # print(f"[TEXT_RECIVED]")
                         await self.handle_transcibed_text(audio_chunk)
 
 
@@ -129,6 +142,3 @@ class SpeechToTextDeepgram :
     def dispose(self , func_name):
         try : self.dg_connection.finish()
         except Exception as error: print( f"Error_Message > {error}" )
-
-
-
