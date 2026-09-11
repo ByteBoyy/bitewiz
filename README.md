@@ -88,7 +88,3 @@ public/ + templates/         browser client
 - External service failure and cancellation paths need deeper hardening.
 - Tool turns are not yet protected by a strict maximum depth.
 - Authentication, rate limiting, durable persistence, and distributed tracing are outside this prototype.
-
-## Author
-
-Built by **Omar Ashraf** as an applied voice and LLM system.
