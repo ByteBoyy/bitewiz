@@ -156,7 +156,7 @@ class RelevanceFilter:
 
     def has_food_context(self, text: str) -> bool:
         """Check for food/restaurant context"""
-        words = set(word.lower() for word in text.split())  
+        words = set(re.findall(r"\b\w+\b", text.lower()))
         return bool(words.intersection(self.food_keywords))
 
     def has_activation_phrase(self, text: str) -> bool:
@@ -249,7 +249,8 @@ class RelevanceFilter:
             
         # Food context - ALWAYS CHECK THIS  
         if context['has_food_context']:
-            food_word_count = sum(1 for word in words if word in self.food_keywords)
+            normalized_words = re.findall(r"\b\w+\b", text.lower())
+            food_word_count = sum(1 for word in normalized_words if word in self.food_keywords)
             score += min(0.6, food_word_count * 0.2)
         
         # Simple greetings
