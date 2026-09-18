@@ -156,15 +156,17 @@ class RelevanceFilter:
 
     def has_food_context(self, text: str) -> bool:
         """Check for food/restaurant context"""
-        words = set(re.findall(r"\b\w+\b", text.lower()))
-        return bool(words.intersection(self.food_keywords))
+        return bool(set(self._normalized_words(text)).intersection(self.food_keywords))
+
+    @staticmethod
+    def _normalized_words(text: str) -> List[str]:
+        """Return lowercase word tokens without surrounding punctuation."""
+        return re.findall(r"\b\w+\b", text.lower())
 
     def has_activation_phrase(self, text: str) -> bool:
         """Check for strong activation phrases"""
-        text_lower = text.lower()  # ADD THIS LINE
-        result = any(phrase in text_lower for phrase in self.activation_phrases)
-        print(f"DEBUG ACTIVATION: '{text}' -> checking phrases: {result}")  # ADD DEBUG
-        return result
+        text_lower = text.lower()
+        return any(phrase in text_lower for phrase in self.activation_phrases)
 
     def is_simple_greeting(self, text: str) -> bool:
         """Check if this is a simple greeting"""
@@ -249,7 +251,7 @@ class RelevanceFilter:
             
         # Food context - ALWAYS CHECK THIS  
         if context['has_food_context']:
-            normalized_words = re.findall(r"\b\w+\b", text.lower())
+            normalized_words = self._normalized_words(text)
             food_word_count = sum(1 for word in normalized_words if word in self.food_keywords)
             score += min(0.6, food_word_count * 0.2)
         

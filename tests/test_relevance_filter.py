@@ -20,6 +20,13 @@ class RelevanceFilterTests(unittest.TestCase):
         self.assertTrue(relevant)
         self.assertFalse(dormant)
 
+    def test_punctuated_food_terms_contribute_to_score(self):
+        relevance_filter = RelevanceFilter()
+
+        score = relevance_filter.calculate_relevance_score("pizza, please")
+
+        self.assertGreaterEqual(score, 0.2)
+
 
 if __name__ == "__main__":
     unittest.main()
